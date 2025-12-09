@@ -1,19 +1,18 @@
+import { Button } from "./rw-components/button/button";
+import { createTheme, cssOf, s } from "./rw-components/helpers";
+import { GlobalThemeProvider } from "./rw-components/theme-provider/theme-provider";
+
+const themeConfig = createTheme({
+  "color-primary": "green",
+});
+
 function App() {
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank"></a>
-        <a href="https://react.dev" target="_blank"></a>
+      <GlobalThemeProvider themeConfig={themeConfig} />
+      <div className={cssOf(s.flexCenter, s.minHScreen)}>
+        <Button onClick={() => alert("hi")}>This is a button</Button>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   );
 }
