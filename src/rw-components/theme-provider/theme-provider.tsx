@@ -1,6 +1,14 @@
 import { type CSSObject, Global } from "@emotion/react";
-import { globalButtonStyles } from "../button/button";
-import { varOf } from "../helpers";
+import { buttonThemeVars, globalButtonStyles } from "../button/button";
+import { varOf } from "../style-helpers";
+
+export const allComponentThemeVariables = {
+  ...buttonThemeVars,
+};
+
+export const allComponentGlobalStyles = {
+  ...globalButtonStyles,
+};
 
 export const GlobalThemeProvider = ({
   themeConfig,
@@ -17,7 +25,7 @@ export const GlobalThemeProvider = ({
         },
         html: {},
         body: {},
-        ...globalButtonStyles,
+        ...allComponentGlobalStyles,
         ...themeConfig,
       }}
     />

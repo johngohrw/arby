@@ -1,6 +1,12 @@
 import type { CSSObject } from "@emotion/react";
 import type { ComponentProps } from "react";
-import { varOf } from "../helpers";
+import { varOf } from "../style-helpers";
+
+// expose certain values as theme variables
+export const buttonThemeVars = {
+  ["color-button-fg"]: "#f9f9f9",
+  ["color-button-bg-disabled"]: "#999",
+} as const;
 
 export const globalButtonStyles: CSSObject = {
   button: {

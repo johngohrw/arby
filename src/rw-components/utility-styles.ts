@@ -1,45 +1,10 @@
-/** biome-ignore-all lint/correctness/noUnusedVariables: completion's sake */
-
-import { css } from "@emotion/css";
 import type { CSSObject } from "@emotion/react";
-import { buttonThemeVariables } from "./button/theme";
-
-export const cssOf = css;
-
-const themeVariables = {
-  ["root-font-scale"]: "14px",
-  ["color-bg"]: "#f9f9f9",
-  ["color-fg"]: "black",
-  ["color-primary"]: "#0f8bd5",
-  ["color-border"]: "#888",
-  ...buttonThemeVariables,
-} as const;
-
-type ThemeVarRawKey = keyof typeof themeVariables;
-type ThemeVarDashedKey = `--${ThemeVarRawKey}`;
-type ThemeMixinRaw = Partial<Record<ThemeVarRawKey, unknown>>;
-type ThemeMixinDashed = Partial<Record<ThemeVarDashedKey, unknown>>;
-
-export const createTheme = (mixin?: ThemeMixinRaw) => {
-  const dashify = (o: Record<string, unknown>) =>
-    Object.entries(o).reduce((a, [k, v]) => ({ ...a, [`--${k}`]: v }), {});
-
-  const themeVariablesDashed = dashify(themeVariables);
-  const themeMixinDashed = dashify(mixin ?? {});
-
-  return {
-    html: {
-      ...themeVariablesDashed,
-      ...themeMixinDashed,
-    },
-  } as CSSObject;
-};
-
-export const varOf = (key: ThemeVarRawKey) => `var(--${key})`;
+import { varOf } from "./style-helpers";
 
 const cssuStatic = {
   borderBox: { boxSizing: "border-box" },
   flex: { display: "flex" },
+  inlineFlex: { display: "inline-flex" },
   flexRow: { flexDirection: "row" },
   flexCol: { flexDirection: "column" },
   alignCenter: { alignItems: "center" },
@@ -51,7 +16,6 @@ const cssuStatic = {
   block: { display: "block" },
   none: { display: "none" },
   flexCenter: {
-    display: "flex",
     justifyContent: "center",
     alignItems: "center",
   },

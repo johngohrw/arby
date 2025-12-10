@@ -2,10 +2,13 @@ import {
   createColumnHelper,
   type IdentifiedColumnDef,
 } from "@tanstack/react-table";
+import { Badge } from "./rw-components/badge/badge";
 import { Button } from "./rw-components/button/button";
-import { createTheme, cssOf, s, varOf } from "./rw-components/helpers";
+import { cssOf, varOf } from "./rw-components/style-helpers";
 import { useTable } from "./rw-components/table/table";
+import { createTheme } from "./rw-components/theme";
 import { GlobalThemeProvider } from "./rw-components/theme-provider/theme-provider";
+import { s } from "./rw-components/utility-styles";
 
 const themeConfig = createTheme({
   "color-bg": "black",
@@ -124,6 +127,7 @@ function App() {
         </div>
         <div className={styles.content}>
           <Button onClick={() => alert("hi")}>This is a button</Button>
+          <Badge>BADGE</Badge>
           {renderTable()}
           {renderTable()}
           {renderTable()}
