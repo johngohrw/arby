@@ -6,15 +6,17 @@ import { Badge } from "./rw-components/badge/badge";
 import { Button } from "./rw-components/button/button";
 import { cssOf, varOf } from "./rw-components/style-helpers";
 import { useTable } from "./rw-components/table/table";
-import { createTheme } from "./rw-components/theme";
+
 import { GlobalThemeProvider } from "./rw-components/theme-provider/theme-provider";
 import { s } from "./rw-components/utility-styles";
+import { createTheme } from "./rw-components/theme-helpers";
+import { Input } from "./rw-components/input/input";
 
 const themeConfig = createTheme({
-  "color-bg": "black",
-  "color-fg": "white",
+  // "color-bg": "black",
+  // "color-fg": "white",
   "root-font-scale": "14px",
-  "color-border": "white",
+  // "color-border": "white",
 });
 
 type Person = {
@@ -127,17 +129,11 @@ function App() {
         </div>
         <div className={styles.content}>
           <Button onClick={() => alert("hi")}>This is a button</Button>
-          <Badge>BADGE</Badge>
-          {renderTable()}
-          {renderTable()}
-          {renderTable()}
-          {renderTable()}
-          {renderTable()}
-          {renderTable()}
-          {renderTable()}
-          {renderTable()}
-          {renderTable()}
-          {renderTable()}
+          <Badge>Badge</Badge>
+          <Badge squared>Something here Hahah</Badge>
+          <Input />
+          <Input placeholder="Enter something here..." />
+          <Input disabled value="disabled" />
           {renderTable()}
         </div>
       </div>

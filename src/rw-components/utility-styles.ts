@@ -1,7 +1,7 @@
 import type { CSSObject } from "@emotion/react";
 import { varOf } from "./style-helpers";
 
-const cssuStatic = {
+const staticUtils = {
   borderBox: { boxSizing: "border-box" },
   flex: { display: "flex" },
   inlineFlex: { display: "inline-flex" },
@@ -31,7 +31,7 @@ const cssuStatic = {
   minWScreen: { minWidth: "100vw" },
 } as const satisfies Record<string, CSSObject>;
 
-const cssuDynamic = {
+const dynamicUtils = {
   inset: (inset: number | string) => ({
     left: inset,
     right: inset,
@@ -58,4 +58,4 @@ const cssuDynamic = {
   }),
 };
 
-export const s = { ...cssuStatic, ...cssuDynamic };
+export const s = { ...staticUtils, ...dynamicUtils };

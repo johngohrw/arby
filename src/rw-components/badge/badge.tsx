@@ -1,25 +1,40 @@
 import type { ComponentProps } from "react";
 import { cssOf, varOf } from "../style-helpers";
 import { s } from "../utility-styles";
+import type { CSSObject } from "@emotion/react";
 
-export const badgeStyles = cssOf({
-  background: varOf("color-primary"),
+// expose certain values as theme variables
+export const badgeThemeVars = {
+  ["color-badge-fg"]: "#f9f9f9",
+} as const;
+
+const defaultStyle = {
   ...s.inlineFlex,
   ...s.flexCenter,
-  borderRadius: "48px",
-  padding: "0.2rem 0.7rem",
-  lineHeight: 1,
+  background: varOf("color-primary"),
+  color: varOf("color-badge-fg"),
+  borderRadius: "1rem", // full roundedness
+  padding: "0.3rem 0.6rem",
+  fontSize: `calc(${varOf("root-font-scale")} * 0.82)`,
   fontWeight: 600,
-  fontSize: `calc(${varOf("root-font-scale")} * 0.88)`,
-});
+  lineHeight: 1,
+  textWrap: "nowrap",
+} satisfies CSSObject;
+
+const squaredStyle = {
+  borderRadius: "0.2rem",
+};
 
 export const Badge = ({
   children,
   className,
+  squared,
   ...rest
-}: ComponentProps<"span">) => {
+}: ComponentProps<"span"> & { squared?: boolean }) => {
+  const style = cssOf(defaultStyle, squared && squaredStyle);
+
   return (
-    <span className={`${badgeStyles} ${className}`} {...rest}>
+    <span className={`${style} ${className}`} {...rest}>
       {children}
     </span>
   );
