@@ -9,9 +9,10 @@ export const globalButtonStyles: CSSObject = {
     outline: "none",
     border: "0",
     borderRadius: "4px",
-    padding: "0.5rem 1rem",
+    padding: "0.35rem 0.75rem",
     cursor: "pointer",
     fontSize: "1rem",
+    fontWeight: "500",
     [":disabled"]: {
       cursor: "not-allowed",
       background: varOf("color-button-bg-disabled"),

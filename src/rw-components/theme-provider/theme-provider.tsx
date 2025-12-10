@@ -1,5 +1,6 @@
 import { type CSSObject, Global } from "@emotion/react";
 import { globalButtonStyles } from "../button/button";
+import { varOf } from "../helpers";
 
 export const GlobalThemeProvider = ({
   themeConfig,
@@ -9,10 +10,13 @@ export const GlobalThemeProvider = ({
   return (
     <Global
       styles={{
-        body: {
-          background: "var(--color-bg)",
-          color: "var(--color-fg)",
+        [":root"]: {
+          fontSize: varOf("root-font-scale"),
+          background: varOf("color-bg"),
+          color: varOf("color-fg"),
         },
+        html: {},
+        body: {},
         ...globalButtonStyles,
         ...themeConfig,
       }}
