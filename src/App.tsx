@@ -152,7 +152,7 @@ const styles = {
     fontWeight: "600",
     marginLeft: "0.5rem",
   }),
-  content: cssOf({
+  content: cssOf(s.flex, s.flexCol, s.alignStart, {
     padding: "0.5rem",
   }),
 };

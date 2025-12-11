@@ -13,6 +13,9 @@ const staticUtils = {
   justifyCenter: { justifyContent: "center" },
   justifyStart: { justifyContent: "flex-start" },
   justifyEnd: { justifyContent: "flex-end" },
+  justifyBetween: { justifyContent: "space-between" },
+  justifyAround: { justifyContent: "space-around" },
+  justifyEvenly: { justifyContent: "space-evenly" },
   block: { display: "block" },
   none: { display: "none" },
   flexCenter: {
