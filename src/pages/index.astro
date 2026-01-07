@@ -1,0 +1,10 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { GitPage } from "../components/GitPage";
+---
+
+<Layout>
+  <div style={{ height: "100vh" }}>
+    <GitPage client:only />
+  </div>
+</Layout>
