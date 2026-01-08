@@ -1,10 +1,10 @@
-import { useEffect, useState, type ComponentProps } from "react";
+import { useEffect, useRef, useState, type ComponentProps } from "react";
 
 import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
 
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
-import { getGitFile } from "../utils/git";
 import clsx from "clsx";
+import { getGitFile, updateMultipleFiles } from "../utils/git";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -13,14 +13,28 @@ export const ArbyApp = () => {
   const [colDefs, setColDefs] = useState([{ field: "key" }]);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [showForm, setShowForm] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const hasInitializedRef = useRef(false);
 
   const [formVals, setFormVals] = useState({
-    gitlabEndpoint: "https://git.alphawave-innovations.com",
+    gitlabEndpoint: "",
     privateToken: "",
-    projectId: "37",
-    branch: "test/translation",
-    filePaths: "arb/app_en.arb,arb/app_zh.arb,arb/app_ms.arb",
+    projectId: "",
+    branch: "",
+    filePaths: "",
   });
+
+  useEffect(() => {
+    if (!hasInitializedRef.current) {
+      hasInitializedRef.current = true;
+      const existingFv = localStorage.getItem("fv");
+      if (existingFv) setFormVals(JSON.parse(existingFv));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("fv", JSON.stringify(formVals));
+  }, [formVals]);
 
   const handleFetch = () => {
     if (!formVals.privateToken) {
@@ -66,11 +80,7 @@ export const ArbyApp = () => {
   };
 
   const fetchAndParseArbsIntoRows = async () => {
-    const inputFilePaths = [
-      "arb/app_en.arb",
-      "arb/app_zh.arb",
-      "arb/app_ms.arb",
-    ];
+    const inputFilePaths = formVals.filePaths.split(",");
 
     const fetchPromises = inputFilePaths.map(async (filePath) => {
       const decodedContent = await getGitFile({
@@ -85,6 +95,7 @@ export const ArbyApp = () => {
     });
 
     const results = await Promise.all(fetchPromises);
+    console.log("results", results);
     const parsed = results.map((o) => ({
       ...o,
       decodedContent: JSON.parse(o.decodedContent ?? "{}"),
@@ -130,6 +141,82 @@ export const ArbyApp = () => {
     return { rows, filePaths };
   };
 
+  const handleUpdate = () => {
+    const fileMaps = colDefs
+      .filter((o) => "originalFilePath" in o)
+      .map((o) => ({ path: o.originalFilePath as string, fieldName: o.field }));
+
+    // presort keys, separating @@ and @ values
+    const topKeysMap = {} as any;
+    const atKeysMap = {} as any;
+    const normalKeysMap = {} as any;
+    data.forEach((row) => {
+      if (row.key.startsWith("@@")) topKeysMap[row.key] = row;
+      else if (row.key.startsWith("@")) atKeysMap[row.key] = row;
+      else normalKeysMap[row.key] = row;
+    });
+    const keyToValues = data.reduce(
+      (a, c) => ({ ...a, [c.key]: c }),
+      {} as Record<string, any>
+    );
+    const topKeys = Object.keys(topKeysMap);
+    const atKeys = Object.keys(atKeysMap);
+    const normalKeys = Object.keys(normalKeysMap);
+
+    const sortedRows = [] as ({ key: string } & Record<string, unknown>)[];
+    // include all topKeys first
+    for (const k of topKeys) sortedRows.push(keyToValues[k]);
+    // go through all normal keys
+    for (const k of normalKeys) {
+      sortedRows.push(keyToValues[k]);
+      // if theres a corresponding @ for this normal key, push it in right afterwards
+      if (`@${k}` in atKeysMap) sortedRows.push(atKeysMap[`@${k}`]);
+    }
+
+    //
+    const files: { path: string; content: string }[] = [];
+    for (const { path, fieldName } of fileMaps) {
+      // pre-format individual lines
+      const lines = sortedRows
+        .map((o, i) => {
+          const isLastLine = i === sortedRows.length - 1;
+          const isAtKey = o.key in atKeysMap;
+          const value = o[fieldName];
+          // no value! we mark this row as undefined to be filtered away later
+          if (!value) return undefined;
+          let formattedVal = isAtKey ? JSON.stringify(value) : `"${value}"`;
+          return `  "${o.key}": ${formattedVal}${isLastLine ? "" : ","}`;
+        })
+        .filter((o) => o);
+      console.log("lines", lines);
+      // join into a multiline string, curly-braced
+      const joined = `{\n${lines.join("\n")}\n}`;
+
+      console.log("joined", joined);
+
+      const safeJoined = joined.replace(/,\n}$/, "\n}"); // ensure no trailing comma
+
+      const result = safeJoined;
+
+      files.push({ path, content: result });
+    }
+    console.log("files", files);
+
+    setIsSubmitting(true);
+    updateMultipleFiles({
+      branch: formVals.branch,
+      commitMessage: "update arb files",
+      gitlabEndpoint: formVals.gitlabEndpoint,
+      privateToken: formVals.privateToken,
+      projectId: formVals.projectId,
+      fileUpdates: files.map((o) => ({
+        action: "update",
+        file_path: o.path,
+        content: o.content,
+      })),
+    }).finally(() => setIsSubmitting(false));
+  };
+
   return (
     <div className="flex flex-col h-full">
       <div
@@ -159,7 +246,7 @@ export const ArbyApp = () => {
             label="Project ID"
             value={formVals.projectId}
             onChange={(e) =>
-              setFormVals((p) => ({ ...p, branch: e.target.value }))
+              setFormVals((p) => ({ ...p, projectId: e.target.value }))
             }
           />
           <TextInput
@@ -237,6 +324,14 @@ export const ArbyApp = () => {
           <span className="text-sm text-slate-400">Try fetching some data</span>
         </div>
       )}
+      <div className="p-4 pt-0 flex justify-end">
+        <Button
+          disabled={data.length <= 0 || isSubmitting}
+          onClick={handleUpdate}
+        >
+          Update
+        </Button>
+      </div>
     </div>
   );
 };
