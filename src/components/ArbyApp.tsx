@@ -23,6 +23,26 @@ export const ArbyApp = () => {
   });
 
   const handleFetch = () => {
+    if (!formVals.privateToken) {
+      alert("Private token is required");
+      return;
+    }
+    if (!formVals.projectId) {
+      alert("Project ID is required");
+      return;
+    }
+    if (!formVals.gitlabEndpoint) {
+      alert("GitLab Endpoint is required");
+      return;
+    }
+    if (!formVals.branch) {
+      alert("Branch is required");
+      return;
+    }
+    if (!formVals.filePaths) {
+      alert("File Paths are required");
+      return;
+    }
     const fetch = async () => {
       const { rows, filePaths } = await fetchAndParseArbsIntoRows();
       console.log("rows", rows);
