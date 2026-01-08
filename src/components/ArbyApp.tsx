@@ -142,7 +142,12 @@ export const ArbyApp = () => {
           transform: `translate(-50%, ${showForm ? 0 : -100}%)`,
         }}
       >
-        <div className="border border-slate-300 rounded-md shadow-xl  flex flex-col p-4 w-full bg-slate-50">
+        <div
+          className={clsx(
+            "border border-slate-300 rounded-md flex flex-col p-4 w-full bg-slate-50",
+            showForm && "shadow-xl"
+          )}
+        >
           <TextInput
             label="GitLab Endpoint"
             value={formVals.gitlabEndpoint}
