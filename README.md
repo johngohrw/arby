@@ -1,6 +1,6 @@
 # Arby
 
-Bulk editor for localization files
+Bulk editor for localization files. Is essentially just a git client.
 
 [Visit site](https://arby-editor.netlify.app/)
 
