@@ -1,9 +1,15 @@
 import { useEffect, useRef, useState, type ComponentProps } from "react";
 
-import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
+import {
+  AllCommunityModule,
+  ModuleRegistry,
+  type ColDef,
+  type ICellRendererParams,
+} from "ag-grid-community";
 
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import clsx from "clsx";
+import { Plus, Trash2Icon } from "lucide-react";
 import { getGitFile, updateMultipleFiles } from "../utils/git";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -15,6 +21,7 @@ export const ArbyApp = () => {
   const [showForm, setShowForm] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const hasInitializedRef = useRef(false);
+  const gridRef = useRef<AgGridReact>(null);
 
   const [formVals, setFormVals] = useState({
     gitlabEndpoint: "",
@@ -22,6 +29,7 @@ export const ArbyApp = () => {
     projectId: "",
     branch: "",
     filePaths: "",
+    commitMessage: "Update translation",
   });
 
   useEffect(() => {
@@ -61,9 +69,55 @@ export const ArbyApp = () => {
       const { rows, filePaths } = await fetchAndParseArbsIntoRows();
       console.log("rows", rows);
       console.log("filePaths", filePaths);
+      let emptyRow = {};
+      if (rows.length > 0) {
+        emptyRow = Object.fromEntries(
+          Object.entries(rows[0]).map(([key]) => [key, ""])
+        );
+      }
       setData(rows);
-      const _colDefs = [
-        { field: "key", editable: true, filter: "agTextColumnFilter" },
+
+      const _colDefs: ColDef<any>[] = [
+        {
+          field: "actions",
+          maxWidth: 100,
+          minWidth: 100,
+          cellRenderer: (params: ICellRendererParams) => {
+            return (
+              <div className="flex gap-1 items-center h-full">
+                <Button
+                  className="min-w-auto p-1! bg-slate-400!"
+                  title="Add new row below"
+                  onClick={() => {
+                    gridRef.current?.api.applyTransaction({
+                      add: [{ ...emptyRow }],
+                      addIndex: (params.node.rowIndex ?? 0) + 1,
+                    });
+                  }}
+                >
+                  <Plus size={16} />
+                </Button>
+                <Button
+                  className="min-w-auto p-1! bg-red-500"
+                  title="Delete row"
+                  onClick={() => {
+                    const rowToDelete = params.data;
+                    gridRef.current?.api.applyTransaction({
+                      remove: [rowToDelete],
+                    });
+                  }}
+                >
+                  <Trash2Icon size={16} />
+                </Button>
+              </div>
+            );
+          },
+        },
+        {
+          field: "key",
+          editable: true,
+          filter: "agTextColumnFilter",
+        },
         ...filePaths.map((path) => ({
           field: filterAlphaOnly(path),
           editable: true,
@@ -150,12 +204,16 @@ export const ArbyApp = () => {
     const topKeysMap = {} as any;
     const atKeysMap = {} as any;
     const normalKeysMap = {} as any;
-    data.forEach((row) => {
+
+    const allRows: any[] = [];
+    gridRef.current?.api.forEachNode((node) => allRows.push(node.data));
+
+    allRows.forEach((row) => {
       if (row.key.startsWith("@@")) topKeysMap[row.key] = row;
       else if (row.key.startsWith("@")) atKeysMap[row.key] = row;
       else normalKeysMap[row.key] = row;
     });
-    const keyToValues = data.reduce(
+    const keyToValues = allRows.reduce(
       (a, c) => ({ ...a, [c.key]: c }),
       {} as Record<string, any>
     );
@@ -205,7 +263,7 @@ export const ArbyApp = () => {
     setIsSubmitting(true);
     updateMultipleFiles({
       branch: formVals.branch,
-      commitMessage: "update arb files",
+      commitMessage: formVals.commitMessage,
       gitlabEndpoint: formVals.gitlabEndpoint,
       privateToken: formVals.privateToken,
       projectId: formVals.projectId,
@@ -293,6 +351,7 @@ export const ArbyApp = () => {
       {dataLoaded ? (
         <div className="h-full p-4">
           <AgGridReact<any>
+            ref={gridRef}
             rowData={data}
             columnDefs={colDefs}
             autoSizeStrategy={{
@@ -305,18 +364,6 @@ export const ArbyApp = () => {
                 },
               ],
             }}
-            onCellValueChanged={(e) => {
-              console.log("onCellValueChanged", e);
-              const newData = e.data;
-              const rowIndex = e.rowIndex;
-              if (rowIndex) {
-                setData((p) => {
-                  const newRows = [...p];
-                  newRows[rowIndex] = newData;
-                  return newRows;
-                });
-              }
-            }}
           />
         </div>
       ) : (
@@ -325,8 +372,16 @@ export const ArbyApp = () => {
         </div>
       )}
       <div className="p-4 pt-0 flex justify-end">
+        <TextInputBare
+          placeholder="Commit Message"
+          value={formVals.commitMessage}
+          onChange={(e) =>
+            setFormVals((p) => ({ ...p, commitMessage: e.target.value }))
+          }
+          className="mr-2"
+        />
         <Button
-          disabled={data.length <= 0 || isSubmitting}
+          disabled={formVals.commitMessage.length === 0 || isSubmitting}
           onClick={handleUpdate}
         >
           Update
@@ -342,18 +397,33 @@ function filterAlphaOnly(str: string): string {
 
 export const TextInput = ({
   label,
+  noLabel,
   ...rest
-}: { label: string } & ComponentProps<"input">) => {
+}: { noLabel?: boolean; label: string } & ComponentProps<"input">) => {
   return (
     <div className="flex flex-row items-center mb-2">
-      <div className="font-medium mr-2 whitespace-nowrap text-sm w-64 shrink-0">
-        {label}
-      </div>
-      <input
-        className="border border-slate-400 rounded px-2 py-1 text-sm w-full"
-        {...rest}
-      />
+      {!noLabel && (
+        <div className="font-medium mr-2 whitespace-nowrap text-sm w-48 shrink-0">
+          {label}
+        </div>
+      )}
+      <TextInputBare {...rest} />
     </div>
+  );
+};
+
+export const TextInputBare = ({
+  className,
+  ...rest
+}: ComponentProps<"input">) => {
+  return (
+    <input
+      className={clsx(
+        "border border-slate-400 rounded px-2 py-1 text-sm w-full",
+        className
+      )}
+      {...rest}
+    />
   );
 };
 
