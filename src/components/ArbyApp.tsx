@@ -5,6 +5,7 @@ import {
   ModuleRegistry,
   type ColDef,
   type ICellRendererParams,
+  type ValueFormatterParams,
 } from "ag-grid-community";
 
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
@@ -72,7 +73,7 @@ export const ArbyApp = () => {
       let emptyRow = {};
       if (rows.length > 0) {
         emptyRow = Object.fromEntries(
-          Object.entries(rows[0]).map(([key]) => [key, ""])
+          Object.entries(rows[0]).map(([key]) => [key, ""]),
         );
       }
       setData(rows);
@@ -117,6 +118,31 @@ export const ArbyApp = () => {
           field: "key",
           editable: true,
           filter: "agTextColumnFilter",
+          cellEditorParams: {
+            getValidationErrors: (
+              params: ValueFormatterParams<any, string>,
+            ) => {
+              const { value } = params;
+              if (!value) return ["No value given"];
+
+              if (/[^A-Za-z0-9_@]/.test(value)) {
+                return ["Allowed characters: alphanumerals, @, _"];
+              }
+              if (/^[A-Z]/.test(value)) {
+                return ["First letter can't be uppercase"];
+              }
+
+              return null;
+            },
+          },
+          valueFormatter: (params: ValueFormatterParams<any, string>) => {
+            if (!params.value) {
+              return "";
+            }
+            const re = /[^A-Za-z0-9_@]+/g;
+            const filtered = params.value.replace(re, "");
+            return filtered;
+          },
         },
         ...filePaths.map((path) => ({
           field: filterAlphaOnly(path),
@@ -156,7 +182,7 @@ export const ArbyApp = () => {
     }));
     console.log("parsed", parsed);
     const allKeys = Array.from(
-      new Set(parsed.map((lang) => Object.keys(lang.decodedContent)).flat())
+      new Set(parsed.map((lang) => Object.keys(lang.decodedContent)).flat()),
     );
     console.log("allKeys", allKeys);
     const filePaths = parsed.map((o) => o.filePath);
@@ -164,10 +190,10 @@ export const ArbyApp = () => {
 
     // pre-fill
     const emptyFilePathsObj = Object.fromEntries(
-      filePaths.map((path) => [filterAlphaOnly(path), undefined])
+      filePaths.map((path) => [filterAlphaOnly(path), undefined]),
     );
     const vals = Object.fromEntries(
-      allKeys.map((key) => [key, { ...emptyFilePathsObj }])
+      allKeys.map((key) => [key, { ...emptyFilePathsObj }]),
     );
 
     console.log("vals", vals);
@@ -215,7 +241,7 @@ export const ArbyApp = () => {
     });
     const keyToValues = allRows.reduce(
       (a, c) => ({ ...a, [c.key]: c }),
-      {} as Record<string, any>
+      {} as Record<string, any>,
     );
     const topKeys = Object.keys(topKeysMap);
     const atKeys = Object.keys(atKeysMap);
@@ -280,7 +306,7 @@ export const ArbyApp = () => {
       <div
         className={clsx(
           `fixed top-0 z-10 w-full max-w-[768px] duration-300`,
-          showForm && "top-4"
+          showForm && "top-4",
         )}
         style={{
           left: "50%",
@@ -290,7 +316,7 @@ export const ArbyApp = () => {
         <div
           className={clsx(
             "border border-slate-300 rounded-md flex flex-col p-4 w-full bg-slate-50",
-            showForm && "shadow-xl"
+            showForm && "shadow-xl",
           )}
         >
           <TextInput
@@ -335,7 +361,7 @@ export const ArbyApp = () => {
             onClick={() => setShowForm((p) => !p)}
             className={clsx(
               "bg-slate-500 text-xs absolute -bottom-3 left-[50%] translate-x-[-50%] translate-y-[100%] shadow-md",
-              showForm && "-bottom-2!"
+              showForm && "-bottom-2!",
             )}
           >
             {showForm ? "Hide" : "Fetcher"}
@@ -353,6 +379,8 @@ export const ArbyApp = () => {
           <AgGridReact<any>
             ref={gridRef}
             rowData={data}
+            tooltipHideDelay={3000}
+            tooltipShowDelay={0}
             columnDefs={colDefs}
             autoSizeStrategy={{
               type: "fitGridWidth",
@@ -420,7 +448,7 @@ export const TextInputBare = ({
     <input
       className={clsx(
         "border border-slate-400 rounded px-2 py-1 text-sm w-full",
-        className
+        className,
       )}
       {...rest}
     />
@@ -436,7 +464,7 @@ export const Button = ({
     <button
       className={clsx(
         "bg-indigo-500 text-white px-3 py-1.5 font-semibold rounded-lg min-w-16 text-sm cursor-pointer disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed",
-        className
+        className,
       )}
       {...rest}
     >
