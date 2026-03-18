@@ -1,4 +1,4 @@
-(!) PROCEED WITH CAUTION. This project was speed-coded in a day to meet a certain requirement for work. Things may break or not work correctly.
+(!) PROCEED WITH CAUTION. This project was speed-coded in a day to meet a certain requirement for work. Things may not work as intended, and you might suffer data loss. You have been warned.
 
 
 # Arby
